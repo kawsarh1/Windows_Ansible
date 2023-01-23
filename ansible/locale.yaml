@@ -1,0 +1,4 @@
+- name: Ensure locale set to EN GB
+  locale_gen:
+    name: en_GB.UTF-8
+    state: present

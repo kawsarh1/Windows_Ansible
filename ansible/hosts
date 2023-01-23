@@ -1,0 +1,8 @@
+[all:vars]
+ansible_user ='kawsarh'
+ansible_become=yes
+ansible_become_method=sudo
+ansible_python_interpreter='/usr/bin/python3'
+
+[kawsarh] 
+20.166.8.23
