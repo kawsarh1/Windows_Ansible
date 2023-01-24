@@ -31,8 +31,16 @@ resource "azurerm_network_interface" "win_rg_ni" {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.win_rg.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id = azurerm_public_ip.win_public_ip.id
+    public_ip_address_id          = azurerm_public_ip.win_public_ip.id
   }
+}
+
+resource "azurerm_storage_account" "my_storage_account" {
+  name                     = local.target_storage_account
+  location                 = azurerm_resource_group.win_rg.location
+  resource_group_name      = azurerm_resource_group.win_rg.name
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 # Create public IPs
@@ -60,18 +68,30 @@ resource "azurerm_network_security_group" "win_nsg" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
+
+  security_rule {
+    name                        = "WINRM-HTTP"
+    priority                    = 101
+    direction                   = "Inbound"
+    access                      = "Allow"
+    protocol                    = "Tcp"
+    source_port_range           = "*"
+    destination_port_range      = "5985-5986"
+    source_address_prefix       = "*"
+    destination_address_prefix  = "VirtualNetwork"
+  }
 }
 
 resource "azurerm_network_interface_security_group_association" "nis_association" {
-    network_interface_id = azurerm_network_interface.win_rg_ni.id
-    network_security_group_id = azurerm_network_security_group.win_nsg.id
+  network_interface_id      = azurerm_network_interface.win_rg_ni.id
+  network_security_group_id = azurerm_network_security_group.win_nsg.id
 }
 
 resource "azurerm_windows_virtual_machine" "win_vm" {
   name                = "win-vm-machine"
   resource_group_name = azurerm_resource_group.win_rg.name
   location            = azurerm_resource_group.win_rg.location
-  size                = "Standard_F2"
+  size                = "Standard_A2_V2"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
@@ -89,4 +109,14 @@ resource "azurerm_windows_virtual_machine" "win_vm" {
     sku       = "2022-Datacenter"
     version   = "latest"
   }
+
+  boot_diagnostics {
+    storage_account_uri = azurerm_storage_account.my_storage_account.primary_blob_endpoint
+  }
+
+  winrm_listener {
+    protocol = "Http"
+  }
+
 }
+
