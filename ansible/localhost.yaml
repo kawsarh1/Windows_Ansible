@@ -4,4 +4,5 @@
   connection: local
   gather_facts: true
   tasks:
-    - import_tasks: locale.yaml
+    - import_tasks: azure-cli.yaml
+    - import_tasks: prereqs.yaml

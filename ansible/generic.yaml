@@ -4,5 +4,6 @@
   become_method: runas
   become_user: System
 
-  # tasks:
-  #   - import_tasks: locale.yaml
+  tasks:
+    - import_tasks: azure-cli.yaml
+    - import_tasks: prereqs.yaml
